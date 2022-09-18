@@ -1,0 +1,55 @@
+version: '3.8'
+services:
+  mysql8:
+    image: mysql:8.0.27
+    platform: linux/x86_64
+    container_name: "${COMPOSE_PROJECT_NAME}_mysql8"
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci --default-authentication-plugin=mysql_native_password
+    ports:
+      - '3306:3306'
+    env_file:
+      - ./env/mysql.env
+    stdin_open: true
+    tty: true
+    volumes:
+      - mysql8:/var/lib/mysql
+
+  tasks-manager-server:
+    build:
+      context: .
+    container_name: "${COMPOSE_PROJECT_NAME}_tasks-manager-server"
+    working_dir: /app
+    command: ./run_server.sh
+    ports:
+      - '3000:3000'
+    env_file:
+      - ./env/server.env
+    stdin_open: true
+    tty: true
+    volumes:
+      - .:/app:cached
+      - bundle:/usr/local/bundle
+      - packs:/app/public/packs
+      - rails_cache:/app/tmp/cache
+    depends_on:
+      - mysql8
+
+#  tasks-manager-front:
+#    image: t0m0418/ruby:3.0.2-bullseye
+#    container_name: "${COMPOSE_PROJECT_NAME}_tasks-manager-front"
+#    working_dir: /tasks_manager
+#    command: bash -c "yarn && yarn start"
+#    ports:
+#      - '4000:4000'
+#    stdin_open: true
+#    tty: true
+#    volumes:
+#      - ./frontend/:/tasks_manager/frontend:cached
+#      - node_modules:/tasks_manager/frontend/node_modules
+
+volumes:
+  mysql8:
+  bundle:
+  packs:
+  rails_cache:
+#  node_modules:
